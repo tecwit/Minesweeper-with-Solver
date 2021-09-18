@@ -15,7 +15,8 @@ class Board:
                     and each row element has column count elements. Each board index has the value -1 assigned indicating that
                     it is has yet to be modified.
         mine_coords: Dictionary containing coordinates of every single mine within the board. Initially empty, filled when mines are placed.
-        move_priority_queue: 
+        move_priority_queue:
+        marked_mines:
     """
     def __init__(self, rows: int = 9, columns: int = 9, num_mines: int = 9):
         """Constructor for minesweeper board.
@@ -36,6 +37,7 @@ class Board:
         self.update_nums()
         self.print_board()
         self.move_priority_queue = BinHeap((self.rows*self.columns)**2, lambda x, y: x[1] < y[1])
+        self.marked_mines = {}
 
     def __str__(self) -> str:
         """printing a board instance allows you to see the array making up the board."""
@@ -203,19 +205,19 @@ class Board:
         else:
             surrounding_list = [coords]
         for each_tile in surrounding_list:
-            if not self.is_mine(each_tile):
-                self.reveal_turn(each_tile)
             tile_value = self.the_board[each_tile[0]][each_tile[1]]
-            if tile_value == 0:
+            if tile_value == [0]:
                 for each_surrounding_tile in self.indices_around_coord(each_tile, False, True):
                     if each_surrounding_tile not in surrounding_list:
                         surrounding_list.append(each_surrounding_tile)
-            elif type(tile_value) == int:
-                insert_tiles = self.indices_around_coord(each_tile, True, True)
+            if not self.is_mine(each_tile) and type(tile_value) != int:
+                self.reveal_turn(each_tile)
+            tile_value = self.the_board[each_tile[0]][each_tile[1]]
+            if type(tile_value) == int:
+                insert_tiles = self.indices_around_coord(each_tile, False, True)
                 for each_insert_tile in insert_tiles:
-                    if each_insert_tile not in surrounding_list:
-                        print("queue_insert: ", each_insert_tile, self.tile_weight(each_insert_tile))
-                        self.move_priority_queue.insert([each_insert_tile, self.tile_weight(each_insert_tile)])
+                    print("queue_insert: ", each_insert_tile, self.tile_weight(each_insert_tile))
+                    self.move_priority_queue.insert([each_insert_tile, self.tile_weight(each_insert_tile)])
             
     def turn_one_mine_check(self, coords):
         """turn_one_mine_check checks to see if there is a mine at the location of the first player turn. If there is the mine is shifted elsewhere so that the game can continue.
@@ -259,8 +261,16 @@ class Board:
                 tile_selection = -1
                 self.print_board()
                 self.turn_count += 1
-                while (type(self.the_board[self.move_priority_queue.find_min()[0][0]][self.move_priority_queue.find_min()[0][1]]) == int) or (self.tile_weight(self.move_priority_queue.find_min()[0]) != self.move_priority_queue.find_min()[1]):
+                tile_wt = self.tile_weight(self.move_priority_queue.find_min()[0])
+                stored_wt = self.move_priority_queue.find_min()[1]
+                min_val = self.move_priority_queue.find_min()
+                while (type(self.the_board[min_val[0][0]][min_val[0][1]]) == int) or (tile_wt != stored_wt):
+                    if tile_wt != stored_wt:
+                        self.move_priority_queue.insert([min_val[0], tile_wt])
                     self.move_priority_queue.remove_min()
+                    min_val = self.move_priority_queue.find_min()
+                    tile_wt = self.tile_weight(min_val[0])
+                    stored_wt = min_val[1]
                 print(self.move_priority_queue.find_min()[0][0]+1,self.move_priority_queue.find_min()[0][1]+1)
                 print(self.move_priority_queue.find_min()[1])
 
@@ -284,14 +294,18 @@ class Board:
             return False
 
     def coord_weight(self, coords):
+        """coord_weight
+        """
         if type(self.the_board[coords[0]][coords[1]]) == list:
             return 0
         else:
             return self.the_board[coords[0]][coords[1]]
         
     def tile_weight(self, coords):
+        """
+        """
         surrounding = self.indices_around_coord(coords)
-        weight = 0*(8-len(surrounding))
+        weight = 0*len(surrounding)
         for each_tile in surrounding:
             weight += self.coord_weight(each_tile)
         return weight
