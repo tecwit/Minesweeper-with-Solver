@@ -167,7 +167,9 @@ class Board:
         self.placed_mines -= 1
         self.mine_coords.pop(coords)
         self.update_nums(coords)
-        self.update_nums(self.place_mines(True))
+        new_mine = self.place_mines(True)
+        self.update_nums(new_mine)
+        self.mine_coords[new_mine] = new_mine
 
     def is_mine(self, coords):
         """is_mine
@@ -219,7 +221,7 @@ class Board:
                     if each_hidden not in self.marked_mines:
                         self.move_priority_queue.insert([each_hidden, 0])
                         #print("EH: ", each_hidden)
-        print(self.marked_mines.keys())
+        #print(self.marked_mines.keys())
     
     def clear_path(self, coords):
         """clear_path takes coordinates and clears all hidden tiles around it recursively until non-zero values are encountered.
@@ -260,6 +262,8 @@ class Board:
 
     def find_play(self):
         """find_play loops through the priority queue of potential moves until it finds a viable play, the play is then printed for the player to execute.
+        Returns:
+            coords
         """
         tile_wt = self.tile_weight(self.move_priority_queue.find_min()[0])
         stored_wt = self.move_priority_queue.find_min()[1]
@@ -271,8 +275,9 @@ class Board:
             min_val = self.move_priority_queue.find_min()
             tile_wt = self.tile_weight(min_val[0])
             stored_wt = min_val[1]
-        print(self.move_priority_queue.find_min()[0][0]+1,self.move_priority_queue.find_min()[0][1]+1)
-        print(self.move_priority_queue.find_min()[1])
+        return min_val[0]
+        #print(min_val[0][0]+1, min_val[0][1]+1)
+        #print(self.move_priority_queue.find_min()[1])
 
     def get_player_input(self):
         """get_player_input
@@ -303,9 +308,12 @@ class Board:
         """player_turns initiates the game for the player."""
         game_over = False
         while game_over == False:
-            coords = self.get_player_input()
+            #coords = self.get_player_input()
             if self.turn_count == 0:
+                coords = (5,5)
                 self.turn_one_mine_check(coords)
+            else:
+                coords = self.find_play()
             self.clear_path(coords)
             if self.game_over(coords):
                 game_over = True
