@@ -15,8 +15,9 @@ class Board:
                     and each row element has column count elements. Each board index has the value -1 assigned indicating that
                     it is has yet to be modified.
         mine_coords: Dictionary containing coordinates of every single mine within the board. Initially empty, filled when mines are placed.
-        move_priority_queue:
-        marked_mines:
+        move_priority_queue: Priority queue represented as a minHeap which stores all potential plays. Initially empty, filled after intial play.
+        marked_mines: Dictionary containing coordinates of what the AI has determined to be the location of a mine. Initially empty, filled after mines are discovered.
+        int_coords: List containing the coordinates of all the visible integers within the game. Initially empty, filled as integers are discovered.
     """
     def __init__(self, rows: int = 9, columns: int = 9, num_mines: int = 9):
         """Constructor for minesweeper board.
@@ -38,6 +39,7 @@ class Board:
         self.print_board()
         self.move_priority_queue = BinHeap((self.rows*self.columns)**2, lambda x, y: x[1] < y[1])
         self.marked_mines = {}
+        self.int_coords = []
 
     def __str__(self) -> str:
         """printing a board instance allows you to see the array making up the board."""
@@ -110,10 +112,9 @@ class Board:
         for each_coord in surrounding_indices:
             if each_coord[0] < self.rows and each_coord[0] >= 0 and each_coord[1] < self.columns and each_coord[1] >= 0: #Makes sure that the coordinates are within the bounds of the game board.
                 if only_hidden:
-                    if self.the_board[each_coord[0]][each_coord[1]] == int:
+                    if type(self.the_board[each_coord[0]][each_coord[1]]) == int:
                         continue
                 output_indices.append(each_coord)
-        #print(coord, output_indices)
         return output_indices
         
     def nums_around_mine(self, coords = None):
@@ -193,6 +194,19 @@ class Board:
             self.the_board[coords[0]][coords[1]] = element[0]
             self.revealed_count += 1
 
+    def find_mines(self):
+        """find_mines takes a look at all the integers on the board and deduces the locations of mines based off of the surrounding tiles of these integers.
+        """
+        for each_int_tile in self.int_coords:
+            hidden_tiles = self.indices_around_coord(each_int_tile, False, only_hidden = True)
+            num_hidden = len(hidden_tiles)
+            int_tile_val = self.the_board[each_int_tile[0]][each_int_tile[1]]
+            if int_tile_val == num_hidden:
+                for each_hidden in hidden_tiles:
+                    self.marked_mines[each_hidden] = True      
+            num_hidden = 0
+        print(self.marked_mines.keys())
+    
     def clear_path(self, coords):
         """clear_path takes coordinates and clears all hidden tiles around it recursively until non-zero values are encountered.
         Arguments:
@@ -213,11 +227,12 @@ class Board:
             if not self.is_mine(each_tile) and type(tile_value) != int:
                 self.reveal_turn(each_tile)
             tile_value = self.the_board[each_tile[0]][each_tile[1]]
-            if type(tile_value) == int:
+            if type(tile_value) == int and tile_value != 0:
                 insert_tiles = self.indices_around_coord(each_tile, False, True)
                 for each_insert_tile in insert_tiles:
-                    print("queue_insert: ", each_insert_tile, self.tile_weight(each_insert_tile))
                     self.move_priority_queue.insert([each_insert_tile, self.tile_weight(each_insert_tile)])
+                self.int_coords.append(each_tile)
+        self.find_mines()
             
     def turn_one_mine_check(self, coords):
         """turn_one_mine_check checks to see if there is a mine at the location of the first player turn. If there is the mine is shifted elsewhere so that the game can continue.
@@ -228,7 +243,23 @@ class Board:
         while element == "X" or element == [9]:
             self.remove_mine(coords)
             element = self.the_board[coords[0]][coords[1]]
-            
+
+    def find_play(self):
+        """find_play loops through the priority queue of potential moves until it finds a viable play, the play is then printed for the player to execute.
+        """
+        tile_wt = self.tile_weight(self.move_priority_queue.find_min()[0])
+        stored_wt = self.move_priority_queue.find_min()[1]
+        min_val = self.move_priority_queue.find_min()
+        while (type(self.the_board[min_val[0][0]][min_val[0][1]]) == int) or (tile_wt != stored_wt) or (min_val[0] in self.marked_mines):
+            if tile_wt != stored_wt:
+                self.move_priority_queue.insert([min_val[0], tile_wt])
+            self.move_priority_queue.remove_min()
+            min_val = self.move_priority_queue.find_min()
+            tile_wt = self.tile_weight(min_val[0])
+            stored_wt = min_val[1]
+        print(self.move_priority_queue.find_min()[0][0]+1,self.move_priority_queue.find_min()[0][1]+1)
+        print(self.move_priority_queue.find_min()[1])
+
     def player_turns(self):
         """player_turns initiates the game for the player."""
         x = None
@@ -261,18 +292,7 @@ class Board:
                 tile_selection = -1
                 self.print_board()
                 self.turn_count += 1
-                tile_wt = self.tile_weight(self.move_priority_queue.find_min()[0])
-                stored_wt = self.move_priority_queue.find_min()[1]
-                min_val = self.move_priority_queue.find_min()
-                while (type(self.the_board[min_val[0][0]][min_val[0][1]]) == int) or (tile_wt != stored_wt):
-                    if tile_wt != stored_wt:
-                        self.move_priority_queue.insert([min_val[0], tile_wt])
-                    self.move_priority_queue.remove_min()
-                    min_val = self.move_priority_queue.find_min()
-                    tile_wt = self.tile_weight(min_val[0])
-                    stored_wt = min_val[1]
-                print(self.move_priority_queue.find_min()[0][0]+1,self.move_priority_queue.find_min()[0][1]+1)
-                print(self.move_priority_queue.find_min()[1])
+                self.find_play()
 
     def game_over(self, coords):
         """game_over returns True or False depending on whether or not the game is over.
@@ -294,7 +314,11 @@ class Board:
             return False
 
     def coord_weight(self, coords):
-        """coord_weight
+        """coord_weight returns an integer weight of a tile (determined by its value), if the tile is hidden, returns an arbitrary value.
+        Arguments:
+            coords: Coordinates of the tile to get a weight for.
+        Returns:
+            An integer representing a weight.
         """
         if type(self.the_board[coords[0]][coords[1]]) == list:
             return 0
@@ -302,12 +326,18 @@ class Board:
             return self.the_board[coords[0]][coords[1]]
         
     def tile_weight(self, coords):
-        """
+        """tile_weight returns the weight of a hidden tile, determined by the weights of all of its surrounding tiles.
+        Arguments:
+            coords: Coordinates of a hidden tile to get a weight for.
+        Returns:
+            A double representing a weight.
         """
         surrounding = self.indices_around_coord(coords)
-        weight = 0*len(surrounding)
+        weight = 0
+        num_nums = 0
         for each_tile in surrounding:
             weight += self.coord_weight(each_tile)
+        weight = weight / len(surrounding)
         return weight
             
 def play_minesweeper():
