@@ -201,10 +201,24 @@ class Board:
             hidden_tiles = self.indices_around_coord(each_int_tile, False, only_hidden = True)
             num_hidden = len(hidden_tiles)
             int_tile_val = self.the_board[each_int_tile[0]][each_int_tile[1]]
+            #print(self.marked_mines.keys())
             if int_tile_val == num_hidden:
                 for each_hidden in hidden_tiles:
-                    self.marked_mines[each_hidden] = True      
-            num_hidden = 0
+                    self.marked_mines[each_hidden] = True
+            for each_hidden in hidden_tiles:
+                if each_hidden in self.marked_mines:
+                    #print("hidden: ", each_hidden, "int_tile: ", each_int_tile, "tile_val: ", int_tile_val)
+                    num_hidden -= 1
+            if num_hidden < int_tile_val:
+                for each_hidden in hidden_tiles:
+                    if each_hidden not in self.marked_mines:
+                        self.move_priority_queue.insert([each_hidden, 0])
+                        #print("EH: ", each_hidden)
+            elif num_hidden == int_tile_val and int_tile_val == 1:
+                for each_hidden in hidden_tiles:
+                    if each_hidden not in self.marked_mines:
+                        self.move_priority_queue.insert([each_hidden, 0])
+                        #print("EH: ", each_hidden)
         print(self.marked_mines.keys())
     
     def clear_path(self, coords):
@@ -250,8 +264,8 @@ class Board:
         tile_wt = self.tile_weight(self.move_priority_queue.find_min()[0])
         stored_wt = self.move_priority_queue.find_min()[1]
         min_val = self.move_priority_queue.find_min()
-        while (type(self.the_board[min_val[0][0]][min_val[0][1]]) == int) or (tile_wt != stored_wt) or (min_val[0] in self.marked_mines):
-            if tile_wt != stored_wt:
+        while (type(self.the_board[min_val[0][0]][min_val[0][1]]) == int) or (tile_wt != stored_wt and stored_wt != 0) or (min_val[0] in self.marked_mines):
+            if tile_wt != stored_wt and stored_wt != 0:
                 self.move_priority_queue.insert([min_val[0], tile_wt])
             self.move_priority_queue.remove_min()
             min_val = self.move_priority_queue.find_min()
@@ -260,28 +274,36 @@ class Board:
         print(self.move_priority_queue.find_min()[0][0]+1,self.move_priority_queue.find_min()[0][1]+1)
         print(self.move_priority_queue.find_min()[1])
 
-    def player_turns(self):
-        """player_turns initiates the game for the player."""
+    def get_player_input(self):
+        """get_player_input
+        Returns:
+            Tuple
+        """
         x = None
         y = None
         tile_selection = -1
+        while type(tile_selection) == int:
+            while (type(x) != int) or (x < 0) or (x > self.rows):
+                try:
+                    x = int(input("Please enter a valid row number: ")) - 1
+                except ValueError:
+                    pass #Input was not an integer type
+            while (type(y) != int) or (y < 0) or (y > self.columns):
+                try:
+                    y = int(input("Please enter a valid column number: ")) - 1
+                except ValueError:
+                    pass #Input column was not an integer type
+            coords = (x,y)
+            tile_selection = self.the_board[coords[0]][coords[1]]
+            x = None
+            y = None
+        return coords
+    
+    def player_turns(self):
+        """player_turns initiates the game for the player."""
         game_over = False
         while game_over == False:
-            while type(tile_selection) == int:
-                while (type(x) != int) or (x < 0) or (x > self.rows):
-                    try:
-                        x = int(input("Please enter a valid row number: ")) - 1
-                    except ValueError:
-                        pass #Input was not an integer type
-                while (type(y) != int) or (y < 0) or (y > self.columns):
-                    try:
-                        y = int(input("Please enter a valid column number: ")) - 1
-                    except ValueError:
-                        pass #Input column was not an integer type
-                coords = (x,y)
-                tile_selection = self.the_board[coords[0]][coords[1]]
-                x = None
-                y = None
+            coords = self.get_player_input()
             if self.turn_count == 0:
                 self.turn_one_mine_check(coords)
             self.clear_path(coords)
