@@ -80,7 +80,7 @@ class Board:
             #print(self)
             x = random.randrange(self.rows)
             y = random.randrange(self.columns)
-            if self.the_board[x][y] != [9] or "X":
+            if self.the_board[x][y] != [9]:
                 self.the_board[x][y] = [9]
                 self.mine_coords[(x,y)] = (x,y)
                 self.placed_mines += 1
