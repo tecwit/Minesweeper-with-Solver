@@ -18,6 +18,7 @@ class Board:
         move_priority_queue: Priority queue represented as a minHeap which stores all potential plays. Initially empty, filled after intial play.
         marked_mines: Dictionary containing coordinates of what the AI has determined to be the location of a mine. Initially empty, filled after mines are discovered.
         int_coords: List containing the coordinates of all the visible integers within the game. Initially empty, filled as integers are discovered.
+        no_mines: Dictionary containing the coordinates of tiles at which the AI determined it impossible for there to be mines.
     """
     def __init__(self, rows: int = 9, columns: int = 9, num_mines: int = 9):
         """Constructor for minesweeper board.
@@ -306,7 +307,8 @@ class Board:
 
     def is_game_lost(self, coords):
         """is_game_lost 
-
+        Arguments:
+            coords:
         """
         if self.is_mine(coords):
             return True
@@ -314,7 +316,9 @@ class Board:
             return False
 
     def is_game_won(self):
-        """is_game_won
+        """is_game_won returns True if the player won the game in the current game status, False if they lost.
+        Returns:
+            Boolean
         """
         if self.revealed_count == (self.rows*self.columns - self.num_mines):
             return True
