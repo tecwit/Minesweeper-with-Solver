@@ -222,7 +222,7 @@ class Board:
                         self.move_priority_queue.insert([each_hidden, 0])
                         print("EH: ", each_hidden)
                         self.no_mines[each_hidden] = None
-        print(self.marked_mines.keys())
+        #print(self.marked_mines.keys())
     
     def clear_path(self, coords):
         """clear_path takes coordinates and clears all hidden tiles around it recursively until non-zero values are encountered.
@@ -266,6 +266,11 @@ class Board:
         Returns:
             coords: Tuple representation of coordinates (x,y)
         """
+        if len(self.marked_mines) == self.num_mines:
+            for row_index, each_board_row in enumerate(self.the_board):
+                for column_index, each_board_tile in enumerate(each_board_row):
+                    if type(each_board_tile) == list and (row_index, column_index) not in self.marked_mines:
+                        self.move_priority_queue.insert([(row_index, column_index), 0])
         tile_wt = self.tile_weight(self.move_priority_queue.find_min()[0])
         stored_wt = self.move_priority_queue.find_min()[1]
         min_val = self.move_priority_queue.find_min()
@@ -410,9 +415,9 @@ def play_minesweeper(wins, losses):
         losses += 1
     print("wins: ", wins)
     print("losses: ", losses)
-    play_again = input("Would you like to play again? Enter y or n: ")
-    if play_again == "y":
-        play_minesweeper(wins, losses)
+    #play_again = input("Would you like to play again? Enter y or n: ")
+    #if play_again == "y":
+    play_minesweeper(wins, losses)
 
 wins = 0
 losses = 0
