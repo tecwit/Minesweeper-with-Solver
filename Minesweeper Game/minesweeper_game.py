@@ -40,6 +40,7 @@ class Board:
         self.move_priority_queue = BinHeap((self.rows*self.columns)**2, lambda x, y: x[1] < y[1])
         self.marked_mines = {}
         self.int_coords = []
+        self.no_mines = {}
 
     def __str__(self) -> str:
         """printing a board instance allows you to see the array making up the board."""
@@ -199,6 +200,7 @@ class Board:
     def find_mines(self):
         """find_mines takes a look at all the integers on the board and deduces the locations of mines based off of the surrounding tiles of these integers.
         """
+        self.no_mines = {}
         for each_int_tile in self.int_coords:
             hidden_tiles = self.indices_around_coord(each_int_tile, False, only_hidden = True)
             num_hidden = len(hidden_tiles)
@@ -211,17 +213,15 @@ class Board:
                 if each_hidden in self.marked_mines:
                     #print("hidden: ", each_hidden, "int_tile: ", each_int_tile, "tile_val: ", int_tile_val)
                     num_hidden -= 1
-            if num_hidden < int_tile_val:
+            if num_hidden <= int_tile_val:
+                if num_hidden == int_tile_val and int_tile_val != 1:
+                    continue
                 for each_hidden in hidden_tiles:
                     if each_hidden not in self.marked_mines:
                         self.move_priority_queue.insert([each_hidden, 0])
-                        #print("EH: ", each_hidden)
-            elif num_hidden == int_tile_val and int_tile_val == 1:
-                for each_hidden in hidden_tiles:
-                    if each_hidden not in self.marked_mines:
-                        self.move_priority_queue.insert([each_hidden, 0])
-                        #print("EH: ", each_hidden)
-        #print(self.marked_mines.keys())
+                        print("EH: ", each_hidden)
+                        self.no_mines[each_hidden] = None
+        print(self.marked_mines.keys())
     
     def clear_path(self, coords):
         """clear_path takes coordinates and clears all hidden tiles around it recursively until non-zero values are encountered.
@@ -268,10 +268,10 @@ class Board:
         tile_wt = self.tile_weight(self.move_priority_queue.find_min()[0])
         stored_wt = self.move_priority_queue.find_min()[1]
         min_val = self.move_priority_queue.find_min()
-        while (type(self.the_board[min_val[0][0]][min_val[0][1]]) == int) or (tile_wt != stored_wt and stored_wt != 0) or (min_val[0] in self.marked_mines):
-            if tile_wt != stored_wt and stored_wt != 0:
-                self.move_priority_queue.insert([min_val[0], tile_wt])
+        while (type(self.the_board[min_val[0][0]][min_val[0][1]]) == int) or (tile_wt != stored_wt and stored_wt != 0) or (min_val[0] in self.marked_mines): #or (min_val[0] not in self.no_mines):
             self.move_priority_queue.remove_min()
+            if tile_wt != stored_wt:
+                self.move_priority_queue.insert([min_val[0], tile_wt])
             min_val = self.move_priority_queue.find_min()
             tile_wt = self.tile_weight(min_val[0])
             stored_wt = min_val[1]
@@ -303,6 +303,42 @@ class Board:
             x = None
             y = None
         return coords
+
+    def is_game_lost(self, coords):
+        """is_game_lost 
+
+        """
+        if self.is_mine(coords):
+            return True
+        else:
+            return False
+
+    def is_game_won(self):
+        """is_game_won
+        """
+        if self.revealed_count == (self.rows*self.columns - self.num_mines):
+            return True
+        else:
+            return False
+
+    def game_over(self, coords):
+        """game_over returns True or False depending on whether or not the game is over.
+        Arguments:
+            coords: Coordinates at which the most recent turn was executed at. Represented as a tuple.
+        Returns:
+            A boolean value. True if the game is over, False if it is not.
+        """
+        if self.is_game_lost(coords):
+            self.reveal_turn(coords)
+            self.print_board()
+            print("Game over! You lost!")
+            return True
+        elif self.is_game_won():
+            self.print_board()
+            print("Game over! You won!")
+            return True
+        else:
+            return False
     
     def player_turns(self):
         """player_turns initiates the game for the player."""
@@ -317,31 +353,12 @@ class Board:
             self.clear_path(coords)
             if self.game_over(coords):
                 game_over = True
-                continue
+                return self.is_game_won()
             else:
                 tile_selection = -1
                 self.print_board()
                 self.turn_count += 1
                 self.find_play()
-
-    def game_over(self, coords):
-        """game_over returns True or False depending on whether or not the game is over.
-        Arguments:
-            coords: Coordinates at which the most recent turn was executed at. Represented as a tuple.
-        Returns:
-            A boolean value. True if the game is over, False if it is not.
-        """
-        if self.is_mine(coords):
-            self.reveal_turn(coords)
-            self.print_board()
-            print("Game over! You lost!")
-            return True
-        elif self.revealed_count == (self.rows*self.columns - self.num_mines):
-            self.print_board()
-            print("Game over! You won!")
-            return True
-        else:
-            return False
 
     def coord_weight(self, coords):
         """coord_weight returns an integer weight of a tile (determined by its value), if the tile is hidden, returns an arbitrary value.
@@ -369,17 +386,28 @@ class Board:
             weight += self.coord_weight(each_tile)
         weight = weight / len(surrounding)
         return weight
-            
-def play_minesweeper():
+
+def play_minesweeper(wins, losses):
     print("Hello! This is my own implementation of minesweeper.")
-    rows = input("Please enter the number of rows you would like to have in the game board: ")
-    columns = input("Please enter the number of columns you would like to have in the game board: ")
-    mines = input("Please enter the number of mines you would like to have randomly generated across the board: ")
+    #rows = input("Please enter the number of rows you would like to have in the game board: ")
+    #columns = input("Please enter the number of columns you would like to have in the game board: ")
+    #mines = input("Please enter the number of mines you would like to have randomly generated across the board: ")
+    rows = 10
+    columns = 10
+    mines = 10
     game = Board(int(rows), int(columns), int(mines))
     print(game)
-    game.player_turns()
+    status = game.player_turns()
+    if status == True:
+        wins += 1
+    else:
+        losses += 1
+    print("wins: ", wins)
+    print("losses: ", losses)
     play_again = input("Would you like to play again? Enter y or n: ")
     if play_again == "y":
-        play_minesweeper()
-        
-play_minesweeper()
+        play_minesweeper(wins, losses)
+
+wins = 0
+losses = 0
+play_minesweeper(wins, losses)
