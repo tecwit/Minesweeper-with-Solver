@@ -264,7 +264,7 @@ class Board:
     def find_play(self):
         """find_play loops through the priority queue of potential moves until it finds a viable play, the play is then printed for the player to execute.
         Returns:
-            coords
+            coords: Tuple representation of coordinates (x,y)
         """
         tile_wt = self.tile_weight(self.move_priority_queue.find_min()[0])
         stored_wt = self.move_priority_queue.find_min()[1]
@@ -281,9 +281,9 @@ class Board:
         #print(self.move_priority_queue.find_min()[1])
 
     def get_player_input(self):
-        """get_player_input
+        """get_player_input asks the player for row and column coordinates at which a move will be executed.
         Returns:
-            Tuple
+            Tuple containing coordinates of the next move to be made.
         """
         x = None
         y = None
@@ -308,7 +308,9 @@ class Board:
     def is_game_lost(self, coords):
         """is_game_lost 
         Arguments:
-            coords:
+            coords: Coordinates at which the game will check for mines at to determine game status. Returns True if game is lost due to player hitting a mine, False otherwise.
+        Returns:
+            Boolean
         """
         if self.is_mine(coords):
             return True
