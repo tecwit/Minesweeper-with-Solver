@@ -220,7 +220,7 @@ class Board:
                 for each_hidden in hidden_tiles:
                     if each_hidden not in self.marked_mines:
                         self.move_priority_queue.insert([each_hidden, 0])
-                        print("EH: ", each_hidden)
+                        #print("EH: ", each_hidden)
                         self.no_mines[each_hidden] = None
         #print(self.marked_mines.keys())
     
