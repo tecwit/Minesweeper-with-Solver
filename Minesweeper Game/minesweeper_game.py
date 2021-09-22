@@ -308,9 +308,9 @@ class Board:
             min_val = self.move_priority_queue.find_min()
             tile_wt = self.tile_weight(min_val[0])
             stored_wt = min_val[1]
-        return min_val[0]
-        #print(min_val[0][0]+1, min_val[0][1]+1)
+        print("SOLVER\nRow: ", min_val[0][0]+1, "Column: ", min_val[0][1]+1)
         #print(self.move_priority_queue.find_min()[1])
+        return min_val[0]
 
     def get_player_input(self):
         """get_player_input asks the player for row and column coordinates at which a move will be executed.
@@ -382,9 +382,9 @@ class Board:
         """player_turns initiates the game for the player."""
         game_over = False
         while game_over == False:
-            #coords = self.get_player_input()
+            coords = self.get_player_input()
             if self.turn_count == 0:
-                coords = (5,5)
+                #coords = (5,5)
                 self.turn_one_mine_check(coords)
             else:
                 coords = self.find_play()
@@ -402,12 +402,12 @@ def play_minesweeper(wins, losses):
     print("Hello! This is my own implementation of minesweeper.")
     rows = input("Please enter the number of rows you would like to have in the game board: ")
     columns = input("Please enter the number of columns you would like to have in the game board: ")
-    #mines = input("Please enter the number of mines you would like to have randomly generated across the board: ")
+    mines = input("Please enter the number of mines you would like to have randomly generated across the board: ")
     #rows = 10
     #columns = 10
     #mines = 10
     game = Board(int(rows), int(columns), int(mines))
-    print(game)
+    #print(game)
     status = game.player_turns()
     if status == True:
         wins += 1
