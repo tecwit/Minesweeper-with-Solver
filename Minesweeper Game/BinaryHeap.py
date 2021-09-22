@@ -7,25 +7,21 @@ class BinHeap:
         self._data = [None]*capacity
         self._size = 0
         self._lt = lt
-#### ^^^ YOUR CODE HERE
 
     def len(self):
         return self._size
-#### ^^^ YOUR CODE HERE
 
     def insert(self, new_element):
         self._data[self.len()] = new_element
         self._size = self.len() + 1
         if self.len() > 1:
             self._bubble_up(self.len()-1)
-#### ^^^ YOUR CODE HERE
 
     def find_min(self):
         if self.len() == 0:
             print("The priority queue is empty")
         else:
             return self._data[0]
-#### ^^^ YOUR CODE HERE
 
     def remove_min(self):
         if self.len() == 0:
@@ -38,19 +34,21 @@ class BinHeap:
             self._data[0] = self._data[self.len()]
             self._data[self.len()] = None
             self._percolate_down(0)
-#### ^^^ YOUR CODE HERE
+            
     def _swap(self, index_a, index_b):
         at_a = self._data[index_a]
         at_b = self._data[index_b]
         self._data[index_a] = at_b
         self._data[index_b] = at_a
+        
     def _find_parent_index(self, elem_index):
         if elem_index == 0:
             print("The 0 element has no parents")
         elif elem_index%2 == 0:
             return (elem_index-1)//2
         else:
-            return (elem_index-1)//2  
+            return (elem_index-1)//2
+        
     def _bubble_up(self, elem_index):
         #println("Bubble up was called")
         elem_parent_index = self._find_parent_index(elem_index)
@@ -66,16 +64,19 @@ class BinHeap:
                 elem_parent_index = self._find_parent_index(elem_index)
                 elem_parent_val = self._data[elem_parent_index]
             #self.see()
+                
     def _find_left_index(self, elem_index):
         left_index = (elem_index*2 + 1)
         if left_index >= self.len():
             return 
         return left_index
+    
     def _find_right_index(self, elem_index):
         right_index = (elem_index*2 + 2)
         if right_index >= self.len():
             return
         return right_index
+    
     def _find_min_child_index(self, elem_index):
         left_child_index = self._find_left_index(elem_index)
         right_child_index = self._find_right_index(elem_index)
@@ -92,7 +93,8 @@ class BinHeap:
         elif self._lt(self._data[right_child_index], self._data[elem_index]):
                 return right_child_index
         #else:
-        #    return left_child_index            
+        #    return left_child_index
+        
     def _percolate_down(self, elem_index):
         #self.see()
         min_child_index = self._find_min_child_index(elem_index)
@@ -101,6 +103,7 @@ class BinHeap:
             self._swap(elem_index, min_child_index)
             elem_index = min_child_index
             min_child_index = self._find_min_child_index(elem_index)
+            
     def see(self):
         println('%p', self._data)
 
