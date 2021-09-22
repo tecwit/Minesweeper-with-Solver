@@ -261,6 +261,33 @@ class Board:
             self.remove_mine(coords)
             element = self.the_board[coords[0]][coords[1]]
 
+    def coord_weight(self, coords):
+        """coord_weight returns an integer weight of a tile (determined by its value), if the tile is hidden, returns an arbitrary value.
+        Arguments:
+            coords: Coordinates of the tile to get a weight for.
+        Returns:
+            An integer representing a weight.
+        """
+        if type(self.the_board[coords[0]][coords[1]]) == list:
+            return 0
+        else:
+            return self.the_board[coords[0]][coords[1]]
+        
+    def tile_weight(self, coords):
+        """tile_weight returns the weight of a hidden tile, determined by the weights of all of its surrounding tiles.
+        Arguments:
+            coords: Coordinates of a hidden tile to get a weight for.
+        Returns:
+            A double representing a weight.
+        """
+        surrounding = self.indices_around_coord(coords)
+        weight = 0
+        num_nums = 0
+        for each_tile in surrounding:
+            weight += self.coord_weight(each_tile)
+        weight = weight / len(surrounding)
+        return weight
+    
     def find_play(self):
         """find_play loops through the priority queue of potential moves until it finds a viable play, the play is then printed for the player to execute.
         Returns:
@@ -371,41 +398,14 @@ class Board:
                 self.turn_count += 1
                 self.find_play()
 
-    def coord_weight(self, coords):
-        """coord_weight returns an integer weight of a tile (determined by its value), if the tile is hidden, returns an arbitrary value.
-        Arguments:
-            coords: Coordinates of the tile to get a weight for.
-        Returns:
-            An integer representing a weight.
-        """
-        if type(self.the_board[coords[0]][coords[1]]) == list:
-            return 0
-        else:
-            return self.the_board[coords[0]][coords[1]]
-        
-    def tile_weight(self, coords):
-        """tile_weight returns the weight of a hidden tile, determined by the weights of all of its surrounding tiles.
-        Arguments:
-            coords: Coordinates of a hidden tile to get a weight for.
-        Returns:
-            A double representing a weight.
-        """
-        surrounding = self.indices_around_coord(coords)
-        weight = 0
-        num_nums = 0
-        for each_tile in surrounding:
-            weight += self.coord_weight(each_tile)
-        weight = weight / len(surrounding)
-        return weight
-
 def play_minesweeper(wins, losses):
     print("Hello! This is my own implementation of minesweeper.")
-    #rows = input("Please enter the number of rows you would like to have in the game board: ")
-    #columns = input("Please enter the number of columns you would like to have in the game board: ")
+    rows = input("Please enter the number of rows you would like to have in the game board: ")
+    columns = input("Please enter the number of columns you would like to have in the game board: ")
     #mines = input("Please enter the number of mines you would like to have randomly generated across the board: ")
-    rows = 10
-    columns = 10
-    mines = 10
+    #rows = 10
+    #columns = 10
+    #mines = 10
     game = Board(int(rows), int(columns), int(mines))
     print(game)
     status = game.player_turns()
@@ -415,9 +415,9 @@ def play_minesweeper(wins, losses):
         losses += 1
     print("wins: ", wins)
     print("losses: ", losses)
-    #play_again = input("Would you like to play again? Enter y or n: ")
-    #if play_again == "y":
-    play_minesweeper(wins, losses)
+    play_again = input("Would you like to play again? Enter y or n: ")
+    if play_again == "y":
+        play_minesweeper(wins, losses)
 
 wins = 0
 losses = 0
