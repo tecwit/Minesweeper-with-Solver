@@ -581,9 +581,11 @@ class Board:
         Returns:
             Boolean
         """
-        
+
+        #If the tile at the passed in coordinates contain a mine, the game is lost
         if self.is_mine(coords):
             return True
+        
         else:
             return False
 
@@ -592,9 +594,11 @@ class Board:
         Returns:
             Boolean
         """
-        
+
+        #If all revealable tiles are revealed, the game is won
         if self.revealed_count == (self.rows*self.columns - self.num_mines):
             return True
+        
         else:
             return False
 
@@ -605,37 +609,51 @@ class Board:
         Returns:
             A boolean value. True if the game is over, False if it is not.
         """
-        
+
         if self.is_game_lost(coords):
             self.reveal_turn(coords)
             self.print_board()
             print("Game over! You lost!")
             return True
+        
         elif self.is_game_won():
             self.print_board()
             print("Game over! You won!")
             return True
+        
         else:
             return False
     
     def player_turns(self):
         """player_turns initiates the game for the player."""
-        
+
         game_over = False
+
+        #Continue prompting player for a turn until the game is over
         while game_over == False:
             #coords = self.get_player_input()
+
+            #For turn count one, it ensures that there is not a mine where the player executes their play
             if self.turn_count == 0:
                 coords = (4,4)
                 self.turn_one_mine_check(coords)
+
+            #If not turn number one, obtains coordinates to execute play at            
             else:
                 #coords = self.get_player_input()
                 coords = self.find_play()
+
+            #Reveals tiles around the executed play    
             self.clear_path(coords)
+
+            #If the game is over, return whether the game was won or lost
             if self.game_over(coords):
                 game_over = True
                 return self.is_game_won()
+
             else:
-                tile_selection = -1
+
+                #Print the updated board and increment turn count by one
                 self.print_board()
                 self.turn_count += 1
                 #self.find_play()
