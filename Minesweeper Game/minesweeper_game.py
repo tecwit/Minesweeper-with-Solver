@@ -344,7 +344,7 @@ class Board:
                     #print("hidden: ", each_hidden, "int_tile: ", each_int_tile, "tile_val: ", int_tile_val)
 
             #If discovered mines around the integer tile equals the value of the tile
-            if int_tile_val - num_bombs == 0:
+            if int_tile_val == num_bombs:
                 
                 #if num_hidden == int_tile_val and int_tile_val != 1:
                 #    continue
@@ -361,7 +361,6 @@ class Board:
                         #Insert the coordinates to the move priority queue, with the highest priority possible
                         self.move_priority_queue.insert([each_hidden, 0])
                         
-
                         #print("EH: ", each_hidden)
                         
         #print("No Mines: ", self.no_mines.keys())
