@@ -371,27 +371,58 @@ class Board:
         Arguments:
             coords: Coordinates at which the clear_path algorithm should originate at. Represented as a tuple.
         """
-        
+
+        #Tile of the board at coords
         board_tile = self.the_board[coords[0]][coords[1]]
+
+        #If player is on the first turn or the current tile is a hidden zero, add all tiles in a 3x3 radius around
+        #the input coordinates to the tile-reveal to-do list
         if self.turn_count == 0 or board_tile == [0]:
             surrounding_list = self.indices_around_coord(coords, only_hidden = True)
-            surrounding_list.append(coords) 
+            surrounding_list.append(coords)
         else:
+
+            #If the current tile is non-zero or it is not the first turn, just add the provided coordinates to
+            #the reveal to-do list
             surrounding_list = [coords]
+
+        #Loop going through each set of coordinates added to the reveal to-do list 
         for each_tile in surrounding_list:
+
+            #Obtain the value of the tile at the set of coordinates
             tile_value = self.the_board[each_tile[0]][each_tile[1]]
+
             if tile_value == [0]:
+
+                #Loop which adds all tiles in a 3x3 surrounding a 0 to the reveal to-do list
                 for each_surrounding_tile in self.indices_around_coord(each_tile, False, True):
+
+                    #Only adds to the list if not already within the list
                     if each_surrounding_tile not in surrounding_list:
                         surrounding_list.append(each_surrounding_tile)
+
+            #Reveal the tile at the specified coordinates if it is not already revealed and if it is not a mine
             if not self.is_mine(each_tile) and type(tile_value) != int:
                 self.reveal_turn(each_tile)
+
+            #Update what the tile value is now that is has been revealed on the board
             tile_value = self.the_board[each_tile[0]][each_tile[1]]
+
             if type(tile_value) == int and tile_value != 0:
+
+                #Add all coordinates of the tiles surrounding the revealed non-zero integer in a 3x3 area to a list
                 insert_tiles = self.indices_around_coord(each_tile, False, True)
+
+                #Loop through each of these surrounding tiles and add them to the move priority queue
                 for each_insert_tile in insert_tiles:
+
+                    #The weights of the inserted tiles are calculated via the tile_weight function
                     self.move_priority_queue.insert([each_insert_tile, self.tile_weight(each_insert_tile)])
+
+                #Add each revealed integer tile to a dictionary list
                 self.int_coords.append(each_tile)
+
+        #Locate potential mine locations now that a turn has been executed and more tiles on the board are revealed
         self.find_mines()
             
     def turn_one_mine_check(self, coords):
