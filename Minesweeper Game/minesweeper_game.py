@@ -449,9 +449,12 @@ class Board:
         Returns:
             An integer representing a weight.
         """
-        
+
+        #If the tile at the specified coordinates is hidden, there is no weight to it
         if type(self.the_board[coords[0]][coords[1]]) == list:
             return 0
+
+        #If it is not hidden, its weight is its value
         else:
             return self.the_board[coords[0]][coords[1]]
         
@@ -462,13 +465,21 @@ class Board:
         Returns:
             A double representing a weight.
         """
-        
+
+        #Gets all the coordinates of the tiles surrounding the input coordinates in a 3x3 area
         surrounding = self.indices_around_coord(coords)
         weight = 0
         num_nums = 0
+
+        #Loops through each of the surrounding tiles
         for each_tile in surrounding:
+            
+            #Adds the weight of each of the surrounding tiles to the current weight 
             weight += self.coord_weight(each_tile)
-        weight = weight / (len(surrounding) - len(self.indices_around_coord(coords, only_hidden = True)) + 1)
+
+        #Normalizes the final weight by dividing by the number of revealed tiles around the input coordinates
+        weight = weight / (len(surrounding) - len(self.indices_around_coord(coords, only_hidden = True)) + 1)\
+            
         return weight
     
     def find_play(self):
