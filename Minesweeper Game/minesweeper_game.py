@@ -52,19 +52,47 @@ class Board:
     
     def print_board(self):
         """print_board prints the player-observable game space."""
+
+        #Initializing the middle section of the board (excluding header and footer)
         main_space = ""
+
+        #Spacing to accomodate for rows that do not have the maximum-digit row numbers in front of them
         front_spacing = len(str(self.rows))*" "
+
+        #Dashes for the top and bottom of the board
         top_bottom_edges = front_spacing + (self.columns + 2)*" -" + "\n"
+
+        #Initializing the front spacing for where the column labels begin
         column_labels = "   " + front_spacing
+
+        #Loop used to generate the string pertaining to the main space
         for row_index, board_row in enumerate(self.the_board):
             for column_index, board_column in enumerate(board_row):
+                
+                #Determines front spacing for each row (for equal space across all rows) determined by how long the row number is for that row
                 front_spacing = (len(str(self.rows))-len(str(row_index+1))+1)*" "
+
+                #If at the beginning of a row, adds to the main space the row number as well as front spacing, followed by the vertical border line
+                #Otherwise, just adds a space to the current row in the main space so that the next placed tile can be properly aligned
                 main_space += f"{row_index+1}" + front_spacing + "| " if (not column_index%self.columns) else " "
+
+                #If the current tile is hidden, uses * to the corresponding position in the main space string representation
+                #If the current tile is not hidden, adds the value of the tile to the main space string representation
                 main_space += "*" if (type(board_column) != int and board_column != "X") else f"{board_column}"
+
+            #Adds the row number to the end of each row and then moves to the next line
             main_space += f" | {row_index+1}\n"
+
+        #Adds the column number labels to the column_labels string (which may span multiple lines depending on how long the largest column number is)
         column_labels += f"\n{column_labels}".join([" ".join(elem) for elem in itertools.zip_longest(*(str(i) for i in range(1,self.columns+1)), fillvalue=" ")]) + "\n"
+
+        #Assigns the header (top) of the board column labels as well as edge dashes
         header = column_labels + top_bottom_edges
+
+        #Assigns the footer (bottom) of the board column labels as well as edge dashes
         footer = top_bottom_edges + column_labels
+
+        #Creates the representation of the entire board, containing the header, main space, and footer
         board_representation = header
         board_representation += main_space
         board_representation += footer
@@ -78,14 +106,25 @@ class Board:
         Returns:
             Tuple representation of coordinates of the most recently placed mine.
         """
+
+        #Ensures that all mines are placed before ending the function
         while self.placed_mines < self.num_mines:
-            #print(self)
+
+            #Obtains random x and y integers within the row and column ranges of the game 
             x = random.randrange(self.rows)
             y = random.randrange(self.columns)
+
+            #Ensures that a mine is not placed where a mine already exists
             if self.the_board[x][y] != [9]:
+
                 self.the_board[x][y] = [9]
+
+                #Adds the location of the placed mine to a dictionary holding the locations of mines (used to later update the numbers of the board)
                 self.mine_coords[(x,y)] = (x,y)
+
                 self.placed_mines += 1
+
+        #When only one mine is placed, as indicated by the optional boolean argument, the coordinates of that mine are returned
         if one_mine == True:
             return (x,y)
         
@@ -97,6 +136,8 @@ class Board:
         Returns:
             List of indices (tuples of coordinates)   
         """
+
+        #Assigns coordinate values to indices of all cardinal directions surrounding a central tile coordinate point
         n_indices = coord[0]-1, coord[1]
         e_indices = coord[0], coord[1]+1
         s_indices = coord[0]+1, coord[1]
@@ -105,18 +146,34 @@ class Board:
         se_indices = coord[0]+1, coord[1]+1
         sw_indices = coord[0]+1, coord[1]-1
         nw_indices = coord[0]-1, coord[1]-1
+
+        #If the adjacent is False, all indices in a 3x3 area around the central tile are considered to be surrounding indices
         if adjacent == False:
             surrounding_indices = [n_indices, e_indices, s_indices, w_indices, ne_indices, se_indices, sw_indices, nw_indices]
+
+        #If adjacent is True, only adjacent indices are considered to be surrounding indices
         else:
             surrounding_indices = [n_indices, e_indices, s_indices, w_indices]
-            
+
+        #Output indices initialized as an empty list
         output_indices = []
+
+        #Loop that ensures that all indices appended to the output indice list are valid
         for each_coord in surrounding_indices:
+
+            #Ensures that all indices are within the bounds of the game board
             if each_coord[0] < self.rows and each_coord[0] >= 0 and each_coord[1] < self.columns and each_coord[1] >= 0: #Makes sure that the coordinates are within the bounds of the game board.
+
+                #If only_hidden is True, the output_indices will not contain the coordinates of tiles which are revealed 
                 if only_hidden:
+
+                    #Revealed tiles have an integer value
                     if type(self.the_board[each_coord[0]][each_coord[1]]) == int:
                         continue
+                
+                #Appends the valid tile to the list of output indices
                 output_indices.append(each_coord)
+                
         return output_indices
         
     def nums_around_mine(self, coords = None):
@@ -126,6 +183,7 @@ class Board:
         Returns:
             A dictionary containing coordinates of all of the tiles in a 3x3 radius of mines and their pertaining values.
         """
+        
         if coords == None:
             coord_list = list(self.mine_coords.keys())
         else:
@@ -145,6 +203,7 @@ class Board:
         Arguments:
             coords: A tuple representing coordinates at which a mine was previously contained.
         """
+        
         if coords == None:
             coord_dict = self.nums_around_mine()
         else:
@@ -166,6 +225,7 @@ class Board:
         Arguments:
             coords: Coordinates for the mine to be removed. Represented as a tuple.
         """
+        
         self.placed_mines -= 1
         self.mine_coords.pop(coords)
         self.update_nums(coords)
@@ -180,6 +240,7 @@ class Board:
         Returns:
             A boolean value. True if the coordinates contain a mine, False if they do not.
         """
+        
         element = self.the_board[coords[0]][coords[1]]
         if element == [9] or element == "X":
             return True
@@ -191,6 +252,7 @@ class Board:
         Arguments:
             coords: Coordinates at which to reveal a turn. Represented as a tuple.
         """
+        
         element = self.the_board[coords[0]][coords[1]]
         if self.is_mine(coords):
             self.the_board[coords[0]][coords[1]] = "X"
@@ -201,34 +263,38 @@ class Board:
     def find_mines(self):
         """find_mines takes a look at all the integers on the board and deduces the locations of mines based off of the surrounding tiles of these integers.
         """
+        
         self.no_mines = {}
         for each_int_tile in self.int_coords:
             hidden_tiles = self.indices_around_coord(each_int_tile, False, only_hidden = True)
-            num_hidden = len(hidden_tiles)
+            num_bombs = 0
             int_tile_val = self.the_board[each_int_tile[0]][each_int_tile[1]]
             #print(self.marked_mines.keys())
-            if int_tile_val == num_hidden:
+            if int_tile_val == len(hidden_tiles):
+                #print(each_int_tile)
                 for each_hidden in hidden_tiles:
-                    self.marked_mines[each_hidden] = True
+                    self.marked_mines[each_hidden] = None
             for each_hidden in hidden_tiles:
                 if each_hidden in self.marked_mines:
                     #print("hidden: ", each_hidden, "int_tile: ", each_int_tile, "tile_val: ", int_tile_val)
-                    num_hidden -= 1
-            if num_hidden <= int_tile_val:
-                if num_hidden == int_tile_val and int_tile_val != 1:
-                    continue
+                    num_bombs += 1
+            if int_tile_val - num_bombs <= 0:
+                #if num_hidden == int_tile_val and int_tile_val != 1:
+                #    continue
                 for each_hidden in hidden_tiles:
                     if each_hidden not in self.marked_mines:
                         self.move_priority_queue.insert([each_hidden, 0])
                         #print("EH: ", each_hidden)
                         self.no_mines[each_hidden] = None
-        #print(self.marked_mines.keys())
+        #print("No Mines: ", self.no_mines.keys())
+        #print("Mines: ", self.marked_mines.keys())
     
     def clear_path(self, coords):
         """clear_path takes coordinates and clears all hidden tiles around it recursively until non-zero values are encountered.
         Arguments:
             coords: Coordinates at which the clear_path algorithm should originate at. Represented as a tuple.
         """
+        
         board_tile = self.the_board[coords[0]][coords[1]]
         if self.turn_count == 0 or board_tile == [0]:
             surrounding_list = self.indices_around_coord(coords, only_hidden = True)
@@ -256,6 +322,7 @@ class Board:
         Arguments:
             coords: Coordinates at which the first turn was executed at. Represented as a tuple.
         """
+        
         element = self.the_board[coords[0]][coords[1]]
         while element == "X" or element == [9]:
             self.remove_mine(coords)
@@ -268,6 +335,7 @@ class Board:
         Returns:
             An integer representing a weight.
         """
+        
         if type(self.the_board[coords[0]][coords[1]]) == list:
             return 0
         else:
@@ -280,12 +348,13 @@ class Board:
         Returns:
             A double representing a weight.
         """
+        
         surrounding = self.indices_around_coord(coords)
         weight = 0
         num_nums = 0
         for each_tile in surrounding:
             weight += self.coord_weight(each_tile)
-        weight = weight / len(surrounding)
+        weight = weight / (len(surrounding) - len(self.indices_around_coord(coords, only_hidden = True)) + 1)
         return weight
     
     def find_play(self):
@@ -293,6 +362,7 @@ class Board:
         Returns:
             coords: Tuple representation of coordinates (x,y)
         """
+        
         if len(self.marked_mines) == self.num_mines:
             for row_index, each_board_row in enumerate(self.the_board):
                 for column_index, each_board_tile in enumerate(each_board_row):
@@ -308,7 +378,7 @@ class Board:
             min_val = self.move_priority_queue.find_min()
             tile_wt = self.tile_weight(min_val[0])
             stored_wt = min_val[1]
-        print("SOLVER\nRow: ", min_val[0][0]+1, "Column: ", min_val[0][1]+1)
+        print("SOLVER\nRow: ", min_val[0][0]+1, "Column: ", min_val[0][1]+1, "Weight: ", stored_wt)
         #print(self.move_priority_queue.find_min()[1])
         return min_val[0]
 
@@ -317,6 +387,7 @@ class Board:
         Returns:
             Tuple containing coordinates of the next move to be made.
         """
+        
         x = None
         y = None
         tile_selection = -1
@@ -344,6 +415,7 @@ class Board:
         Returns:
             Boolean
         """
+        
         if self.is_mine(coords):
             return True
         else:
@@ -354,6 +426,7 @@ class Board:
         Returns:
             Boolean
         """
+        
         if self.revealed_count == (self.rows*self.columns - self.num_mines):
             return True
         else:
@@ -366,6 +439,7 @@ class Board:
         Returns:
             A boolean value. True if the game is over, False if it is not.
         """
+        
         if self.is_game_lost(coords):
             self.reveal_turn(coords)
             self.print_board()
@@ -380,13 +454,15 @@ class Board:
     
     def player_turns(self):
         """player_turns initiates the game for the player."""
+        
         game_over = False
         while game_over == False:
-            coords = self.get_player_input()
+            #coords = self.get_player_input()
             if self.turn_count == 0:
-                #coords = (5,5)
+                coords = (5,5)
                 self.turn_one_mine_check(coords)
             else:
+                #coords = self.get_player_input()
                 coords = self.find_play()
             self.clear_path(coords)
             if self.game_over(coords):
@@ -396,16 +472,17 @@ class Board:
                 tile_selection = -1
                 self.print_board()
                 self.turn_count += 1
-                self.find_play()
+                #self.find_play()
 
 def play_minesweeper(wins, losses):
+    
     print("Hello! This is my own implementation of minesweeper.")
-    rows = input("Please enter the number of rows you would like to have in the game board: ")
-    columns = input("Please enter the number of columns you would like to have in the game board: ")
-    mines = input("Please enter the number of mines you would like to have randomly generated across the board: ")
-    #rows = 10
-    #columns = 10
-    #mines = 10
+    #rows = input("Please enter the number of rows you would like to have in the game board: ")
+    #columns = input("Please enter the number of columns you would like to have in the game board: ")
+    #mines = input("Please enter the number of mines you would like to have randomly generated across the board: ")
+    rows = 9
+    columns = 9
+    mines = 10
     game = Board(int(rows), int(columns), int(mines))
     #print(game)
     status = game.player_turns()
@@ -415,9 +492,9 @@ def play_minesweeper(wins, losses):
         losses += 1
     print("wins: ", wins)
     print("losses: ", losses)
-    play_again = input("Would you like to play again? Enter y or n: ")
-    if play_again == "y":
-        play_minesweeper(wins, losses)
+    #play_again = input("Would you like to play again? Enter y or n: ")
+    #if play_again == "y":
+    play_minesweeper(wins, losses)
 
 wins = 0
 losses = 0
