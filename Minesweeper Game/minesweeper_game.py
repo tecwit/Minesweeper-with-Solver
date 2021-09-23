@@ -538,25 +538,40 @@ class Board:
         Returns:
             Tuple containing coordinates of the next move to be made.
         """
-        
+
         x = None
         y = None
         tile_selection = -1
+
+        #Loop that ensures a valid tile is selected before proceeding
         while type(tile_selection) == int:
+
+            #Loop that ensures a valid row number is provided by the player
+            #Integer within the bounds of the board
             while (type(x) != int) or (x < 0) or (x > self.rows):
                 try:
                     x = int(input("Please enter a valid row number: ")) - 1
                 except ValueError:
                     pass #Input was not an integer type
+
+            #Loop that ensures a valid column number is provided by the player
+            #Integer within the bounds of the board
             while (type(y) != int) or (y < 0) or (y > self.columns):
                 try:
                     y = int(input("Please enter a valid column number: ")) - 1
                 except ValueError:
                     pass #Input column was not an integer type
+
+            #Assigns the output coordinates
             coords = (x,y)
-            tile_selection = self.the_board[coords[0]][coords[1]]
+
+            #Re-assigns the tile based on new x and y values
+            tile_selection = self.the_board[x][y]
+
+            #Should the tile be invalid, x and y are reset and the player must make a new selection
             x = None
             y = None
+            
         return coords
 
     def is_game_lost(self, coords):
