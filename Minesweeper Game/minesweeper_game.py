@@ -254,13 +254,21 @@ class Board:
         Arguments:
             coords: Coordinates for the mine to be removed. Represented as a tuple.
         """
-        
+
         self.placed_mines -= 1
         self.mine_coords.pop(coords)
         self.the_board[coords[0]][coords[1]] = [0]
+
+        #Update numbers around the coordinates where the mine was removed
         self.update_nums(coords)
+
+        #Obtain coordinates of newly placed mine and add these coordinates to the dictionary containing mine coordinates
         new_mine_coords = self.place_mines(one_mine = True)
+
+        #Update numbers around new mine
         self.update_nums(new_mine_coords)
+
+        #Add newly placed mine location to dictionary of mines
         self.mine_coords[new_mine_coords] = new_mine_coords
 
     def is_mine(self, coords):
@@ -270,10 +278,14 @@ class Board:
         Returns:
             A boolean value. True if the coordinates contain a mine, False if they do not.
         """
-        
-        element = self.the_board[coords[0]][coords[1]]
-        if element == [9] or element == "X":
+
+        tile_value = self.the_board[coords[0]][coords[1]]
+
+        #If the tile is a mine
+        if tile_value == [9] or tile_value == "X":
             return True
+        
+        #If the tile is not a mine
         else:
             return False
 
