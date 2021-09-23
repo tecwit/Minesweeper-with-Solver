@@ -487,24 +487,50 @@ class Board:
         Returns:
             coords: Tuple representation of coordinates (x,y)
         """
-        
+
+        #If all mines have been discovered
         if len(self.marked_mines) == self.num_mines:
+
+            #Loop through each tile in the board
             for row_index, each_board_row in enumerate(self.the_board):
                 for column_index, each_board_tile in enumerate(each_board_row):
+
+                    #If the tile is hidden and is not a mine, then add that tile to the move priority queue
                     if type(each_board_tile) == list and (row_index, column_index) not in self.marked_mines:
+
+                        #Inserting tile coordinates as well as its corresponding 0 weight as we know it is not a mine
                         self.move_priority_queue.insert([(row_index, column_index), 0])
+
+        #Recalculate the tile weight for the first tile in the priority queue
         tile_wt = self.tile_weight(self.move_priority_queue.find_min()[0])
-        stored_wt = self.move_priority_queue.find_min()[1]
+
+        #Obtain first tile in the priority queue and its weight
         min_val = self.move_priority_queue.find_min()
-        while (type(self.the_board[min_val[0][0]][min_val[0][1]]) == int) or (tile_wt != stored_wt and stored_wt != 0) or (min_val[0] in self.marked_mines): #or (min_val[0] not in self.no_mines):
+        stored_wt = min_val[1]
+
+        #Loop that determines if the first tile in the priority queue is a valid play
+        #If the tile is already revealed, it is invalid
+        #If the tile has an inconsistent weight to the weight stored in the priority queue, it is invalid
+        #If the tile is contained at a location where we determined to be a mine, it is invalid
+        while (type(self.the_board[min_val[0][0]][min_val[0][1]]) == int) or (tile_wt != stored_wt and stored_wt != 0) or (min_val[0] in self.marked_mines):
+
+            #Remove the invalid tile
             self.move_priority_queue.remove_min()
+
+            #If the weight is inconsistent, insert the consistent weight into the priority queue
             if tile_wt != stored_wt:
                 self.move_priority_queue.insert([min_val[0], tile_wt])
+
+            #Update values to be representative of the next values within the priority queue 
             min_val = self.move_priority_queue.find_min()
             tile_wt = self.tile_weight(min_val[0])
             stored_wt = min_val[1]
+
+        #Print the valid play, which is least likely on the board to be a mine
         print("SOLVER\nRow: ", min_val[0][0]+1, "Column: ", min_val[0][1]+1, "Weight: ", stored_wt)
+        
         #print(self.move_priority_queue.find_min()[1])
+        
         return min_val[0]
 
     def get_player_input(self):
