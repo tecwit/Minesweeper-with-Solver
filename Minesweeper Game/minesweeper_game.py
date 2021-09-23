@@ -295,39 +295,75 @@ class Board:
             coords: Coordinates at which to reveal a turn. Represented as a tuple.
         """
         
-        element = self.the_board[coords[0]][coords[1]]
+        tile_value = self.the_board[coords[0]][coords[1]][0]
+
+        
         if self.is_mine(coords):
             self.the_board[coords[0]][coords[1]] = "X"
         else:
-            self.the_board[coords[0]][coords[1]] = element[0]
+            self.the_board[coords[0]][coords[1]] = tile_value
+            
+            #Increment the count of revealed tiles
             self.revealed_count += 1
 
     def find_mines(self):
         """find_mines takes a look at all the integers on the board and deduces the locations of mines based off of the surrounding tiles of these integers.
         """
-        
+
+        #Dictionary containing coordinates of positions with no mines is reset
         self.no_mines = {}
+        
+        #Loops through the coordinates of every revealed integer on the board 
         for each_int_tile in self.int_coords:
+
+            #Finds the hidden tiles around each revealed integer on the board
             hidden_tiles = self.indices_around_coord(each_int_tile, False, only_hidden = True)
+
+            #Sets the number of bombs around the integer tile to 0 intially
             num_bombs = 0
+
+            #Value of the integer tile
             int_tile_val = self.the_board[each_int_tile[0]][each_int_tile[1]]
+            
             #print(self.marked_mines.keys())
-            if int_tile_val == len(hidden_tiles):
-                #print(each_int_tile)
-                for each_hidden in hidden_tiles:
-                    self.marked_mines[each_hidden] = None
+            #print(each_int_tile)
+
+            #Loop through each of these hidden tiles and add them to the list of where we know mines are located
             for each_hidden in hidden_tiles:
+                
+                #If the number of hidden tiles around the integer tile equals the tile value
+                if int_tile_val == len(hidden_tiles):
+                    
+                    #Only adds to the list if not already in list of mines
+                    if each_hidden not in self.marked_mines:
+                        self.marked_mines[each_hidden] = None
+
+                #If the coordinates for the hidden tile are within the dictionary of discovered mines, the number of discovered bombs around the integer tile is incremented by 1
                 if each_hidden in self.marked_mines:
-                    #print("hidden: ", each_hidden, "int_tile: ", each_int_tile, "tile_val: ", int_tile_val)
                     num_bombs += 1
-            if int_tile_val - num_bombs <= 0:
+                    #print("hidden: ", each_hidden, "int_tile: ", each_int_tile, "tile_val: ", int_tile_val)
+
+            #If discovered mines around the integer tile equals the value of the tile
+            if int_tile_val - num_bombs == 0:
+                
                 #if num_hidden == int_tile_val and int_tile_val != 1:
                 #    continue
+
+                #Loop through each of the hidden tiles around the integer tile
                 for each_hidden in hidden_tiles:
+
+                    #If the hidden tile is not a discovered mine, it can be declared to not be a mine
                     if each_hidden not in self.marked_mines:
-                        self.move_priority_queue.insert([each_hidden, 0])
-                        #print("EH: ", each_hidden)
+
+                        #Add to the list of coordinates we know for sure there are no mines at
                         self.no_mines[each_hidden] = None
+
+                        #Insert the coordinates to the move priority queue, with the highest priority possible
+                        self.move_priority_queue.insert([each_hidden, 0])
+                        
+
+                        #print("EH: ", each_hidden)
+                        
         #print("No Mines: ", self.no_mines.keys())
         #print("Mines: ", self.marked_mines.keys())
     
