@@ -167,7 +167,7 @@ class Board:
                 #If only_hidden is True, the output_indices will not contain the coordinates of tiles which are revealed 
                 if only_hidden:
 
-                    #Revealed tiles have an integer value
+                    #Revealed tiles have an integer value, if identified, the loop is continued
                     if type(self.the_board[each_coord[0]][each_coord[1]]) == int:
                         continue
                 
@@ -183,42 +183,71 @@ class Board:
         Returns:
             A dictionary containing coordinates of all of the tiles in a 3x3 radius of mines and their pertaining values.
         """
-        
+
+        #If no coordinates are provided, all tiles containing mines will be added to the to-do list to have their surrounding numbers evaluated
         if coords == None:
             coord_list = list(self.mine_coords.keys())
+
+        #If coordinates are provided, only the specified coordinates will be added to the to-do list to have its surrounding numbers evaluated
         else:
             coord_list = [coords]
-        known_indices = {}
-        for each_mine_index in coord_list:
-            indices_to_add = self.indices_around_coord(each_mine_index)   
-            for coords in indices_to_add:
-                if coords in known_indices:
-                    known_indices[coords] += 1
+
+        #Empty dictionary which will store all tiles around specified coordinates as well as their pertaining values
+        tile_values = {}
+
+        #Loop cycles through each set of coordinates within the to-do list
+        for each_coord in coord_list:
+
+            #Finds the surrounding tiles around each set of coordinates
+            tiles_around_coords = self.indices_around_coord(each_coord)
+
+            #Loop which cycles through the tiles around a set of coordinates, eventually storing/updating the value of each surrounding tile
+            for coords in tiles_around_coords:
+
+                #If the coordinates of the current tile are already stored within the tile value dictionary, its value is increased by one because
+                #more than one mine surrounds it
+                if coords in tile_values:
+                    tile_values[coords] += 1
+
+                #If the coordinates of the current tile are not stored within the tile value dictionary, it is added with a value of 1
                 else:
-                    known_indices[coords] = 1
-        return known_indices
+                    tile_values[coords] = 1
+                    
+        return tile_values
     
     def update_nums(self, coords = None):
         """update_nums updates the numbers on the minesweeper board with respect to where the mines are placed.
         Arguments:
             coords: A tuple representing coordinates at which a mine was previously contained.
         """
-        
+
+        #If no coordinates are provided, all tiles on the board surrounded by mines will be obtained
         if coords == None:
+            
+            #A dictionary with all tiles that surround mines and their pertaining values
             coord_dict = self.nums_around_mine()
+
+        #If coordinates are provided, only tiles surrounding the specified coordinates will be obtained 
         else:
             coord_dict = self.nums_around_mine(coords)
-            if self.placed_mines < self.num_mines:
-                self.the_board[coords[0]][coords[1]] = [0]
-        for each_coord in list(coord_dict.keys()):
-            if self.placed_mines == self.num_mines and each_coord not in self.mine_coords and coords == None:
-                self.the_board[each_coord[0]][each_coord[1]] = [coord_dict[each_coord]]
-            elif self.placed_mines == self.num_mines and each_coord not in self.mine_coords:
-                self.the_board[each_coord[0]][each_coord[1]][0] += 1
-            elif self.placed_mines != self.num_mines and each_coord in self.mine_coords:
-                self.the_board[coords[0]][coords[1]][0] += 1
-            elif self.placed_mines != self.num_mines and each_coord not in self.mine_coords:
-                self.the_board[each_coord[0]][each_coord[1]][0] -= 1
+
+        #Loop that will go through each set of cordinates in the dictionary to have their values updated on the game board
+        for each_tile_coordinates in list(coord_dict.keys()):
+
+            #If all mines have been placed, and the current tile to be updated is not a mine, and no coordinates were provided then update the tile on the board
+            #to its corresponding value
+            if self.placed_mines == self.num_mines and each_tile_coordinates not in self.mine_coords and coords == None:
+                self.the_board[each_tile_coordinates[0]][each_tile_coordinates[1]] = [coord_dict[each_tile_coordinates]]
+
+            #If all mines have been placed but coordinates were provided, a new mine was added and each tile value around that mine must be incremented by one
+            #as long as that tile is not a mine
+            elif self.placed_mines == self.num_mines and each_tile_coordinates not in self.mine_coords:
+                self.the_board[each_tile_coordinates[0]][each_tile_coordinates[1]][0] += 1
+
+            #If not all mines have been placed and coordinates to a mine were provided, this means that the mine at the provided coordinates was removed
+            #the specified coordinates will have its surrounding tile values updated respectively
+            elif self.placed_mines != self.num_mines and each_tile_coordinates not in self.mine_coords:
+                self.the_board[each_tile_coordinates[0]][each_tile_coordinates[1]][0] -= 1
 
     def remove_mine(self, coords):
         """remove_mine removes the mine at the specified coordinates.
@@ -228,10 +257,11 @@ class Board:
         
         self.placed_mines -= 1
         self.mine_coords.pop(coords)
+        self.the_board[coords[0]][coords[1]] = [0]
         self.update_nums(coords)
-        new_mine = self.place_mines(True)
-        self.update_nums(new_mine)
-        self.mine_coords[new_mine] = new_mine
+        new_mine_coords = self.place_mines(one_mine = True)
+        self.update_nums(new_mine_coords)
+        self.mine_coords[new_mine_coords] = new_mine_coords
 
     def is_mine(self, coords):
         """is_mine
@@ -459,7 +489,7 @@ class Board:
         while game_over == False:
             #coords = self.get_player_input()
             if self.turn_count == 0:
-                coords = (5,5)
+                coords = (4,4)
                 self.turn_one_mine_check(coords)
             else:
                 #coords = self.get_player_input()
