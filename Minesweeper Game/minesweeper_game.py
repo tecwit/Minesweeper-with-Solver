@@ -430,11 +430,17 @@ class Board:
         Arguments:
             coords: Coordinates at which the first turn was executed at. Represented as a tuple.
         """
-        
-        element = self.the_board[coords[0]][coords[1]]
-        while element == "X" or element == [9]:
+
+        tile_value = self.the_board[coords[0]][coords[1]]
+
+        #Loop that ensures there is no mine assigned to the location where the player executes their first turn
+        while tile_value == "X" or tile_value == [9]:
+            
+            #Relocates mine at coordinates to a new location
             self.remove_mine(coords)
-            element = self.the_board[coords[0]][coords[1]]
+
+            #Updates value of the tile with the mine relocated
+            tile_value = self.the_board[coords[0]][coords[1]]
 
     def coord_weight(self, coords):
         """coord_weight returns an integer weight of a tile (determined by its value), if the tile is hidden, returns an arbitrary value.
