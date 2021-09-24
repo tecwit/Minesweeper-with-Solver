@@ -659,27 +659,45 @@ class Board:
                 #self.find_play()
 
 def play_minesweeper(wins, losses):
+    """play_minesweeper starts a Minesweeper game from scratch.
+    Arguments:
+        wins: Cumulative number of wins
+        losses: Cumulative number of losses
+    """
     
     print("Hello! This is my own implementation of minesweeper.")
-    #rows = input("Please enter the number of rows you would like to have in the game board: ")
-    #columns = input("Please enter the number of columns you would like to have in the game board: ")
-    #mines = input("Please enter the number of mines you would like to have randomly generated across the board: ")
-    rows = 9
-    columns = 9
-    mines = 10
+    rows = input("Please enter the number of rows you would like to have in the game board: ")
+    columns = input("Please enter the number of columns you would like to have in the game board: ")
+    mines = input("Please enter the number of mines you would like to have randomly generated across the board: ")
+
+    #The below is used for testing easy mode
+    #rows = 9
+    #columns = 9
+    #mines = 10
+
+    #Initiates the game with designated rows, columns and mine count
     game = Board(int(rows), int(columns), int(mines))
+    
     #print(game)
+
+    #Status is true if the game is over and the player won, it is False if the game is over and the player lost
     status = game.player_turns()
+
+    #Increments wins / losses
     if status == True:
         wins += 1
     else:
         losses += 1
+
     print("wins: ", wins)
     print("losses: ", losses)
-    #play_again = input("Would you like to play again? Enter y or n: ")
-    #if play_again == "y":
-    play_minesweeper(wins, losses)
 
+    #Prompts player if they would like to play again, if yes, starts new game
+    play_again = input("Would you like to play again? Enter y or n: ")
+    if play_again == "y":
+        play_minesweeper(wins, losses)
+
+#Starts game with initial wins/losses of 0
 wins = 0
 losses = 0
 play_minesweeper(wins, losses)
