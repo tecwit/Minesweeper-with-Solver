@@ -9,4 +9,4 @@ The game includes a Solver functionality which prints out the "best" move for th
 - Solver effectiveness on Expert (16x30x99) difficulty TBD
 
 ###BUGS###
-- If there is an isolated spot in the board outlines by mines, the solver will error because it has no way of seeing the tiles in this isolated area.
+- If there is an isolated spot in the board outlined by mines, the solver will error because it has no way of seeing the tiles in this isolated area.
